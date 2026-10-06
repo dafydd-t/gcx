@@ -215,7 +215,7 @@ tool versions are used regardless of shell configuration.
 | `mise run lint` | Runs `golangci-lint run -c .golangci.yaml` |
 | `mise run deps` | `go mod download` |
 | `mise run docs` | Builds Grafana website docs with Docker; no reference generation |
-| `mise run reference:release` | Generates the single-page reference from a release checkout |
+| `mise run docs:refresh-cli` | Generates CLI and configuration references from the latest stable release |
 | `mise run serve-docs` | Grafana website preview on localhost:3002 |
 | `mise run test-env-up` | `docker-compose up -d` + health-wait loop |
 | `mise run test-env-down` | `docker-compose down` |
@@ -311,12 +311,6 @@ The changelog is auto-generated from `git log` via GitHub, filtering out
 Release concurrency is set to `cancel-in-progress: false` so in-flight releases
 always complete.
 
-### update-cli-reference.yaml — Released Reference PR
-
-Runs after a successful stable release, or manually for a retry. It generates
-from the latest stable release commit and updates one rolling bot PR. A reviewer
-approves workflow execution and merges after CI and the Grafana docs preview pass.
-
 ### deploy-pr-preview.yml — Grafana Docs Preview
 
 Changes to `docs/sources` on same-repository PRs get a Grafana website preview
@@ -358,20 +352,19 @@ tree (e.g. fully offline work); it is never required.
 
 ## 6. Code Generation (scripts/)
 
-The release reference is generated explicitly with `mise run reference:release`.
+The release reference is generated explicitly with `mise run docs:refresh-cli`.
 Normal `mise run docs` builds the Grafana website documentation using Docker;
 it neither regenerates nor checks the release snapshot against `main`.
 
 ### Released CLI Reference
 
-`generate-cli-reference.sh` runs the renderer in `scripts/cli-reference/` against
-a stable release checkout. Commands and environment variables go in
+`mise run docs:refresh-cli` downloads the latest stable release source and runs
+the renderer in `scripts/cli-reference/` against it. Commands and environment variables go in
 `docs/sources/cli-reference.md`; the config schema replaces the generated section
 at the bottom of `docs/sources/configuration.md`, preserving the guide above it.
-`update-cli-reference.yaml` runs after a successful
-release and uses `publish-cli-reference.sh` to update a rolling docs-only PR with
-a signed GitHub API commit. The generated content is a release snapshot, not a
-drift target for command changes on `main`.
+After generation, review the diff, commit any changes, and open a separate
+documentation PR. The generated content is a release snapshot, not a drift target
+for command changes on `main`.
 
 ### Config Reference (`scripts/config-reference/main.go`)
 
@@ -501,7 +494,7 @@ mise run all                  # lint + tests + build + docs (full gate)
 mise run docs                 # build Grafana website docs (Docker)
 mise run serve-docs           # preview at localhost:3002
 # Release snapshot generation is separate from normal command PRs:
-mise run reference:release -- /path/to/release-checkout v1.5.0 /tmp/cli-reference.md
+mise run docs:refresh-cli     # regenerate from the latest stable release, then open a PR
 ```
 
 ### Integration Testing (manual)

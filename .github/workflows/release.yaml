@@ -51,9 +51,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
 
-  update-cli-reference:
-    needs: release
-    permissions:
-      contents: write
-      pull-requests: write
-    uses: $/.github/workflows/update-cli-reference.yaml
