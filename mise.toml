@@ -121,6 +121,10 @@ run = """
 docker run --rm -v "$PWD/docs/sources:/hugo/content/docs/grafana/next/as-code/observability-as-code/grafana-cli/gcx:ro" grafana/docs-base:latest /bin/bash -c 'make hugo'
 """
 
+[tasks."docs:refresh-cli"]
+description = "Trigger a CLI reference update PR"
+run = "gh workflow run update-cli-reference.yaml --repo grafana/gcx --ref main"
+
 [tasks."reference:release"]
 description = "Generate the single-page reference: <release-source-directory> <release-tag> <output-file>"
 run = "bash scripts/generate-cli-reference.sh"
