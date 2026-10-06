@@ -3,14 +3,13 @@ set -euo pipefail
 
 : "${GH_REPO:?GH_REPO is required}"
 if [[ $# != 3 ]]; then
-  echo "Usage: $0 <release-tag> <source-commit> <generated-page>" >&2
+  echo "Usage: $0 <release-tag> <source-commit> <generated-directory>" >&2
   exit 1
 fi
 version=$1
 source_commit=$2
-page=$3
+pages=$3
 branch=docs/update-cli-reference
-path=docs/sources/cli-reference.md
 temp_dir=$(mktemp -d)
 trap 'rm -rf "$temp_dir"' EXIT
 
@@ -25,9 +24,15 @@ base=main
 if [[ -n "$pr" ]]; then
   base=$branch
 fi
-gh api "repos/$GH_REPO/contents/$path?ref=$base" -H 'Accept: application/vnd.github.raw+json' > "$temp_dir/previous.md"
-if cmp -s "$page" "$temp_dir/previous.md"; then
-  echo "CLI reference is already up to date"
+changed=false
+for page in cli-reference.md configuration.md; do
+  gh api "repos/$GH_REPO/contents/docs/sources/$page?ref=$base" -H 'Accept: application/vnd.github.raw+json' > "$temp_dir/$page"
+  if ! cmp -s "$pages/$page" "$temp_dir/$page"; then
+    changed=true
+  fi
+done
+if [[ "$changed" == false ]]; then
+  echo "Reference pages are already up to date"
   exit 0
 fi
 
@@ -42,16 +47,18 @@ if [[ -z "$pr" ]]; then
   fi
 fi
 head_sha=$(gh api "repos/$GH_REPO/git/ref/heads/$branch" --jq .object.sha)
-base64 < "$page" | tr -d '\n' > "$temp_dir/content"
 jq -n --arg repo "$GH_REPO" --arg branch "$branch" --arg head "$head_sha" \
-  --arg path "$path" --arg title "docs: update CLI reference for $version" \
-  --rawfile content "$temp_dir/content" '{
+  --arg title "docs: update CLI reference for $version" \
+  --rawfile cli "$pages/cli-reference.md" --rawfile config "$pages/configuration.md" '{
     query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }",
     variables: {input: {
       branch: {repositoryNameWithOwner: $repo, branchName: $branch},
       expectedHeadOid: $head,
       message: {headline: $title},
-      fileChanges: {additions: [{path: $path, contents: $content}]}
+      fileChanges: {additions: [
+        {path: "docs/sources/cli-reference.md", contents: ($cli | @base64)},
+        {path: "docs/sources/configuration.md", contents: ($config | @base64)}
+      ]}
     }}
   }' > "$temp_dir/commit.json"
 # GitHub signs createCommitOnBranch commits as the authenticated bot.

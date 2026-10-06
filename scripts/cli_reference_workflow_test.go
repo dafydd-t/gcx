@@ -20,6 +20,8 @@ func TestPublishCLIReference(t *testing.T) {
 	}{
 		{name: "new PR", wantCommit: true, wantPR: "pr create"},
 		{name: "rolling PR", mode: "open", wantCommit: true, wantPR: "pr edit"},
+		{name: "only CLI changed", mode: "cli-only", wantCommit: true, wantPR: "pr create"},
+		{name: "only config changed", mode: "config-only", wantCommit: true, wantPR: "pr create"},
 		{name: "unchanged", mode: "unchanged"},
 		{name: "outdated release", mode: "outdated"},
 		{name: "recycle merged branch", mode: "merged", wantCommit: true, wantPR: "pr create"},
@@ -27,8 +29,9 @@ func TestPublishCLIReference(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			dir := t.TempDir()
-			page := filepath.Join(dir, "page.md")
+			page := filepath.Join(dir, "cli-reference.md")
 			require.NoError(t, os.WriteFile(page, []byte("new page\n"), 0600))
+			require.NoError(t, os.WriteFile(filepath.Join(dir, "configuration.md"), []byte("new config\n"), 0600))
 			mock := `#!/usr/bin/env bash
 set -euo pipefail
 echo "$*" >> "$MOCK_DIR/calls"
@@ -42,8 +45,10 @@ case "$1 $2" in
     ;;
   'api repos/example/gcx/releases/latest')
     if [[ "$MOCK_MODE" == outdated ]]; then echo v1.3.0; else echo v1.2.3; fi ;;
-  'api repos/example/gcx/contents/'*)
-    if [[ "$MOCK_MODE" == unchanged ]]; then echo 'new page'; else echo 'old page'; fi ;;
+  'api repos/example/gcx/contents/docs/sources/cli-reference.md'*)
+    if [[ "$MOCK_MODE" == unchanged || "$MOCK_MODE" == config-only ]]; then echo 'new page'; else echo 'old page'; fi ;;
+  'api repos/example/gcx/contents/docs/sources/configuration.md'*)
+    if [[ "$MOCK_MODE" == unchanged || "$MOCK_MODE" == cli-only ]]; then echo 'new config'; else echo 'old config'; fi ;;
   'api repos/example/gcx/git/matching-refs/'*)
     if [[ "$MOCK_MODE" == merged ]]; then echo 1; else echo 0; fi ;;
   'api repos/example/gcx/git/ref/'*) echo expected-head ;;
@@ -53,7 +58,7 @@ esac
 `
 			require.NoError(t, os.WriteFile(filepath.Join(dir, "gh"), []byte(mock), 0600))
 			require.NoError(t, os.Chmod(filepath.Join(dir, "gh"), 0700))
-			cmd := exec.CommandContext(t.Context(), "bash", "publish-cli-reference.sh", "v1.2.3", "source-sha", page)
+			cmd := exec.CommandContext(t.Context(), "bash", "publish-cli-reference.sh", "v1.2.3", "source-sha", dir)
 			cmd.Env = append(os.Environ(), "PATH="+dir+string(os.PathListSeparator)+os.Getenv("PATH"), "GH_REPO=example/gcx", "MOCK_DIR="+dir, "MOCK_MODE="+tc.mode)
 			output, err := cmd.CombinedOutput()
 			if tc.wantError {
@@ -70,6 +75,9 @@ esac
 				require.NotContains(t, string(calls), "pr edit")
 			}
 			if !tc.wantCommit {
+				if !tc.wantError {
+					require.NotContains(t, string(calls), "api graphql")
+				}
 				return
 			}
 			data, err := os.ReadFile(filepath.Join(dir, "commit.json"))
@@ -89,9 +97,11 @@ esac
 			}
 			require.NoError(t, json.Unmarshal(data, &request))
 			require.Equal(t, "expected-head", request.Variables.Input.ExpectedHeadOID)
-			require.Len(t, request.Variables.Input.FileChanges.Additions, 1)
+			require.Len(t, request.Variables.Input.FileChanges.Additions, 2)
 			require.Equal(t, "docs/sources/cli-reference.md", request.Variables.Input.FileChanges.Additions[0].Path)
 			require.Equal(t, "bmV3IHBhZ2UK", request.Variables.Input.FileChanges.Additions[0].Contents)
+			require.Equal(t, "docs/sources/configuration.md", request.Variables.Input.FileChanges.Additions[1].Path)
+			require.Equal(t, "bmV3IGNvbmZpZwo=", request.Variables.Input.FileChanges.Additions[1].Contents)
 		})
 	}
 }

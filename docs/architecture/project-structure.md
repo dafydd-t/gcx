@@ -156,7 +156,7 @@ gcx/
 │   ├── shared/               # Shared utilities (date handling, duration, etc.) to be shared across integrations.
 │
 ├── scripts/                  # Standalone Go programs for code generation
-│   ├── cli-reference/        # Renders the single-page released CLI reference
+│   ├── cli-reference/        # Renders released CLI and configuration references
 │   ├── config-reference/     # Generates config YAML reference from Go structs
 │   └── env-vars-reference/   # Generates env-var docs from struct tags
 │
@@ -365,10 +365,12 @@ it neither regenerates nor checks the release snapshot against `main`.
 ### Released CLI Reference
 
 `generate-cli-reference.sh` runs the renderer in `scripts/cli-reference/` against
-a stable release checkout and combines its command tree with generated config
-and environment references. `update-cli-reference.yaml` runs after a successful
+a stable release checkout. Commands and environment variables go in
+`docs/sources/cli-reference.md`; the config schema replaces the generated section
+at the bottom of `docs/sources/configuration.md`, preserving the guide above it.
+`update-cli-reference.yaml` runs after a successful
 release and uses `publish-cli-reference.sh` to update a rolling docs-only PR with
-a signed GitHub API commit. The committed page is a release snapshot, not a
+a signed GitHub API commit. The generated content is a release snapshot, not a
 drift target for command changes on `main`.
 
 ### Config Reference (`scripts/config-reference/main.go`)

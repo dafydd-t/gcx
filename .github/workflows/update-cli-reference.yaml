@@ -54,10 +54,10 @@ jobs:
       - name: Generate release reference
         env:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
-        run: bash automation/scripts/generate-cli-reference.sh release-source "$RELEASE_TAG" "$RUNNER_TEMP/cli-reference.md"
+        run: bash automation/scripts/generate-cli-reference.sh release-source "$RELEASE_TAG" "$RUNNER_TEMP/reference"
 
       - name: Create or update rolling PR
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
-        run: bash automation/scripts/publish-cli-reference.sh "$RELEASE_TAG" "$(git -C release-source rev-parse HEAD)" "$RUNNER_TEMP/cli-reference.md"
+        run: bash automation/scripts/publish-cli-reference.sh "$RELEASE_TAG" "$(git -C release-source rev-parse HEAD)" "$RUNNER_TEMP/reference"
