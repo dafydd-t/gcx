@@ -85,6 +85,12 @@ Flag defaults below are for human mode. Agent mode changes defaults such as outp
 `, version)
 	renderCommands(&out, rootCmd)
 	out.WriteString("## Environment variables\n\n")
+	out.WriteString("Environment variables override matching configuration values in the selected context for the current invocation; they do not implicitly update the configuration file. `--context` selects the context before these overrides are applied.\n\n" +
+		"Precedence depends on the setting (highest priority first):\n\n" +
+		"- **Configuration file selection:** `--config` > `GCX_CONFIG` > automatic discovery. An explicit file bypasses layering; otherwise, repository configuration takes precedence over user configuration, then system configuration.\n" +
+		"- **Agent mode:** explicit `--agent` or `--agent=false` > `GCX_AGENT_MODE` > agent detection variables.\n" +
+		"- **Telemetry:** non-empty `GCX_TELEMETRY` > `DO_NOT_TRACK=1` or `true` > `diagnostics.telemetry` in configuration > the built-in default.\n\n" +
+		"Blank `GRAFANA_TOKEN`, `GRAFANA_PASSWORD`, and `GRAFANA_CLOUD_TOKEN` values are ignored. Environment overrides still follow the [configuration source and credential restrictions](../configuration/#understand-the-gcx-configuration-file-in-use).\n\n")
 	envDoc = strings.ReplaceAll(envDoc, "\n## `", "\n### `")
 	out.WriteString(withoutTitle(envDoc))
 	out.WriteString("\n")
