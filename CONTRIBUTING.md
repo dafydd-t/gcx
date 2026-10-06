@@ -211,10 +211,11 @@ commands, flags, environment variables, and configuration. Edit the command help
 or source metadata rather than the generated page. Command PRs must not update
 this release snapshot.
 
-After a successful Release workflow, `update-cli-reference.yaml` generates from
-that release commit and opens or updates the rolling `docs/update-cli-reference`
-PR. Click **Approve workflows to run**, inspect CI and the Grafana docs preview,
-and merge manually. Bot commits use GitHub's signed `createCommitOnBranch` API.
+After publishing succeeds, the Release workflow calls `update-cli-reference.yaml`
+to generate from the latest stable release and open or update the rolling
+`docs/update-cli-reference` PR. Click **Approve workflows to run**, inspect CI and
+the Grafana docs preview, and merge manually. Bot commits use GitHub's signed
+`createCommitOnBranch` API.
 The workflow requires Actions to be allowed to create PRs; no extra token is needed.
 
 Retry against the latest stable release with:

@@ -94,10 +94,12 @@ func TestSupplementEnvironment(t *testing.T) {
 	guide := "| `GRAFANA_SERVER` | context | duplicate |\n" +
 		"| `GCX_CONFIG` | global | Config file override |\n" +
 		"| `GRAFANA_PROVIDER_SLO_TOKEN` | slo | token |\n" +
-		"| `GCX_AGENT_MODE` | opt-in/out | Enable agent mode |"
+		"| `GCX_AGENT_MODE` | opt-in/out | Enable agent mode |\n" +
+		"| `OPENCODE` | opencode | Truthy value activates agent mode |"
 	page := supplementEnvironment(env, guide)
 	require.Equal(t, 1, strings.Count(page, "## `GRAFANA_SERVER`"))
 	require.Contains(t, page, "## `GCX_CONFIG`\n\nConfig file override")
 	require.Contains(t, page, "Overrides the slo provider's token configuration.")
 	require.Contains(t, page, "## `GCX_AGENT_MODE`")
+	require.Contains(t, page, "## `OPENCODE`\n\nTruthy value activates agent mode")
 }
