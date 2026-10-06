@@ -22121,6 +22121,16 @@ Inherits `--agent`, `--context`, `--insecure-log-http-payload`, `--no-color`, `-
 
 ## Environment variables
 
+Environment variables override matching configuration values in the selected context for the current invocation; they do not implicitly update the configuration file. `--context` selects the context before these overrides are applied.
+
+Precedence depends on the setting (highest priority first):
+
+- **Configuration file selection:** `--config` > `GCX_CONFIG` > automatic discovery. An explicit file bypasses layering; otherwise, repository configuration takes precedence over user configuration, then system configuration.
+- **Agent mode:** explicit `--agent` or `--agent=false` > `GCX_AGENT_MODE` > agent detection variables.
+- **Telemetry:** non-empty `GCX_TELEMETRY` > `DO_NOT_TRACK=1` or `true` > `diagnostics.telemetry` in configuration > the built-in default.
+
+Blank `GRAFANA_TOKEN`, `GRAFANA_PASSWORD`, and `GRAFANA_CLOUD_TOKEN` values are ignored. Environment overrides still follow the [configuration source and credential restrictions](../configuration/#understand-the-gcx-configuration-file-in-use).
+
 ### `DO_NOT_TRACK`
 
 DoNotTrack disables anonymous usage telemetry when set to "1" or
