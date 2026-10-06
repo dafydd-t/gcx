@@ -376,8 +376,8 @@ mise run reference
 `generate-cli-reference.sh` runs the renderer in `scripts/cli-reference/` against
 a stable release checkout and combines its command tree with generated config
 and environment references. `update-cli-reference.yaml` runs after a successful
-release and uses `publish-cli-reference.sh` to update a rolling docs-only PR with
-a signed GitHub API commit. The committed page is a release snapshot, not a
+release and uses `peter-evans/create-pull-request` to update a rolling docs-only PR
+with signed bot commits. The committed page is a release snapshot, not a
 drift target for command changes on `main`.
 
 ### CLI Reference (`scripts/cmd-reference/main.go`)

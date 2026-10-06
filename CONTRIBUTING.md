@@ -214,8 +214,8 @@ this release snapshot.
 After publishing succeeds, the Release workflow calls `update-cli-reference.yaml`
 to generate from the latest stable release and open or update the rolling
 `docs/update-cli-reference` PR. Click **Approve workflows to run**, inspect CI and
-the Grafana docs preview, and merge manually. Bot commits use GitHub's signed
-`createCommitOnBranch` API.
+the Grafana docs preview, and merge manually. The `peter-evans/create-pull-request`
+action manages the rolling PR and signs its bot commits.
 The workflow requires Actions to be allowed to create PRs; no extra token is needed.
 
 Retry against the latest stable release with:
