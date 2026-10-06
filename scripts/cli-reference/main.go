@@ -82,13 +82,7 @@ Flag defaults below are for human mode. Agent mode changes defaults such as outp
 ## Commands
 
 `, version)
-	commands := publicCommands(rootCmd)
-	for _, cmd := range commands {
-		depth := strings.Count(cmd.CommandPath(), " ")
-		fmt.Fprintf(&out, "%s- [`%s`](#%s)\n", strings.Repeat("  ", depth), cmd.CommandPath(), anchor(cmd))
-	}
-	out.WriteString("\n")
-	for _, cmd := range commands {
+	for _, cmd := range publicCommands(rootCmd) {
 		renderCommand(&out, cmd)
 	}
 	out.WriteString("## Environment variables\n\n")
