@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -16,13 +17,22 @@ import (
 func main() {
 	version := flag.String("version", "", "Release tag")
 	configPath := flag.String("config", "", "Generated configuration reference")
+	configPage := flag.String("config-page", "", "Configuration guide to append the reference to")
 	envPath := flag.String("env", "", "Generated environment variable reference")
-	output := flag.String("output", "", "Output Markdown file")
+	output := flag.String("output-dir", "", "Output directory")
 	flag.Parse()
-	if *version == "" || *configPath == "" || *envPath == "" || *output == "" {
-		log.Fatal("version, config, env and output are required")
+	if *version == "" || *configPath == "" || *configPage == "" || *envPath == "" || *output == "" {
+		log.Fatal("version, config, config-page, env and output-dir are required")
 	}
 	configDoc, err := os.ReadFile(*configPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	configurationGuide, err := os.ReadFile(*configPage)
+	if err != nil {
+		log.Fatal(err)
+	}
+	configuration, err := renderConfiguration(string(configurationGuide), string(configDoc), *version)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,8 +49,11 @@ func main() {
 	}
 	// Cobra captures the executable name when it constructs completion help.
 	os.Args[0] = "gcx"
-	page := render(root.Command(*version), *version, string(configDoc), supplementEnvironment(string(envDoc), string(guide)))
-	if err := os.WriteFile(*output, []byte(page), 0600); err != nil {
+	page := render(root.Command(*version), *version, supplementEnvironment(string(envDoc), string(guide)))
+	if err := os.WriteFile(filepath.Join(*output, "cli-reference.md"), []byte(page), 0600); err != nil {
+		log.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(*output, "configuration.md"), []byte(configuration), 0600); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -49,11 +62,11 @@ func anchor(cmd *cobra.Command) string {
 	return strings.ReplaceAll(cmd.CommandPath(), " ", "-")
 }
 
-func render(rootCmd *cobra.Command, version, configDoc, envDoc string) string {
+func render(rootCmd *cobra.Command, version, envDoc string) string {
 	var out strings.Builder
 	fmt.Fprintf(&out, `---
 title: CLI reference
-description: Complete gcx command, flag, environment variable, and configuration reference.
+description: Complete gcx command, flag, and environment variable reference.
 weight: 60
 ---
 
@@ -65,7 +78,7 @@ Flag defaults below are for human mode. Agent mode changes defaults such as outp
 
 - [Commands](#commands)
 - [Environment variables](#environment-variables)
-- [Configuration](#configuration)
+- [Configuration reference](../configuration/#configuration-reference)
 
 ## Commands
 
@@ -74,14 +87,23 @@ Flag defaults below are for human mode. Agent mode changes defaults such as outp
 	out.WriteString("## Environment variables\n\n")
 	envDoc = strings.ReplaceAll(envDoc, "\n## `", "\n### `")
 	out.WriteString(withoutTitle(envDoc))
-	out.WriteString("\n\n## Configuration\n\n")
-	out.WriteString("The following schema describes configuration fields and their types. See [Configuration](../configuration/) for setup examples.\n\n")
-	out.WriteString(withoutTitle(configDoc))
 	out.WriteString("\n")
 
 	// Time-dependent defaults otherwise change on every release-docs retry.
 	dateDefault := regexp.MustCompile(`\(default "\d{4}-\d{2}-\d{2}"\)`)
 	return dateDefault.ReplaceAllString(out.String(), `(default "YYYY-MM-DD")`)
+}
+
+const configurationMarker = "<!-- BEGIN GENERATED CONFIGURATION REFERENCE -->"
+
+func renderConfiguration(guide, schema, version string) (string, error) {
+	prefix, _, found := strings.Cut(guide, configurationMarker)
+	if !found {
+		return "", fmt.Errorf("configuration guide is missing %s", configurationMarker)
+	}
+	return prefix + configurationMarker + "\n\n## Configuration reference\n\n" +
+		fmt.Sprintf("This schema describes configuration fields and their types in gcx **%s**.\n\n", version) +
+		withoutTitle(schema) + "\n", nil
 }
 
 func renderCommands(out *strings.Builder, cmd *cobra.Command) {

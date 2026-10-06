@@ -31,10 +31,9 @@ func TestRenderCommands(t *testing.T) {
 			require.NoError(t, leaf.Flags().MarkHidden("internal"))
 			group.AddCommand(leaf)
 			cmd.AddCommand(group)
-			page := render(cmd, "v1.2.3", "# Config\n\n```yaml\n# schema comment\nversion: int\n```", "# Env\n\n## `GCX_TEST`\n\nTest variable")
+			page := render(cmd, "v1.2.3", "# Env\n\n## `GCX_TEST`\n\nTest variable")
 			require.Contains(t, page, "gcx **v1.2.3**")
 			require.Contains(t, page, "### `GCX_TEST`")
-			require.Contains(t, page, "# schema comment")
 			require.NotContains(t, page, "--internal")
 			if tc.hidden {
 				require.NotContains(t, page, "gcx group get")
@@ -58,8 +57,8 @@ func TestFullCommandCoverageAndLinks(t *testing.T) {
 	t.Setenv("GCX_AGENT_MODE", "false")
 	cmd := root.Command("v1.2.3")
 	cmd.Use = "gcx"
-	page := render(cmd, "v1.2.3", "# Config\n\n```yaml\nversion: int\n```", "# Env\n\n## `GCX_TEST`\n\nTest variable")
-	ids := map[string]bool{"commands": true, "environment-variables": true, "configuration": true}
+	page := render(cmd, "v1.2.3", "# Env\n\n## `GCX_TEST`\n\nTest variable")
+	ids := map[string]bool{"commands": true, "environment-variables": true}
 	for _, match := range regexp.MustCompile(`\{#([^}]+)\}`).FindAllStringSubmatch(page, -1) {
 		require.False(t, ids[match[1]], "duplicate anchor %s", match[1])
 		ids[match[1]] = true
@@ -78,13 +77,13 @@ func TestFullCommandCoverageAndLinks(t *testing.T) {
 		}
 	}
 	check(cmd)
-	require.Equal(t, page, render(cmd, "v1.2.3", "# Config\n\n```yaml\nversion: int\n```", "# Env\n\n## `GCX_TEST`\n\nTest variable"))
+	require.Equal(t, page, render(cmd, "v1.2.3", "# Env\n\n## `GCX_TEST`\n\nTest variable"))
 }
 
 func TestDateDefaults(t *testing.T) {
 	cmd := &cobra.Command{Use: "gcx"}
 	cmd.Flags().String("date", "2026-10-06", "Report date")
-	page := render(cmd, "v1.2.3", "# Config", "# Env")
+	page := render(cmd, "v1.2.3", "# Env")
 	require.Contains(t, page, `(default "YYYY-MM-DD")`)
 	require.NotContains(t, page, "2026-10-06")
 }
@@ -102,4 +101,17 @@ func TestSupplementEnvironment(t *testing.T) {
 	require.Contains(t, page, "Overrides the slo provider's token configuration.")
 	require.Contains(t, page, "## `GCX_AGENT_MODE`")
 	require.Contains(t, page, "## `OPENCODE`\n\nTruthy value activates agent mode")
+}
+
+func TestRenderConfiguration(t *testing.T) {
+	guide := "# Configure gcx\n\nHandwritten guidance.\n\n"
+	schema := "# Configuration reference\n\n```yaml\n# schema comment\nversion: int\n```\n"
+	page, err := renderConfiguration(guide+configurationMarker+"\nOld schema\n", schema, "v1.2.3")
+	require.NoError(t, err)
+	require.Equal(t, guide+configurationMarker+"\n\n## Configuration reference\n\nThis schema describes configuration fields and their types in gcx **v1.2.3**.\n\n```yaml\n# schema comment\nversion: int\n```\n", page)
+	again, err := renderConfiguration(page, schema, "v1.2.3")
+	require.NoError(t, err)
+	require.Equal(t, page, again)
+	_, err = renderConfiguration(guide, schema, "v1.2.3")
+	require.ErrorContains(t, err, "missing")
 }
