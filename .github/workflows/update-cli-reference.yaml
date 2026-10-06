@@ -52,29 +52,12 @@ jobs:
           cache-dependency-path: release-source/go.sum
 
       - name: Generate release reference
-        id: generate
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: bash automation/scripts/generate-cli-reference.sh release-source "$RELEASE_TAG" "$RUNNER_TEMP/cli-reference.md"
+
+      - name: Create or update rolling PR
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
-        run: |
-          bash automation/scripts/generate-cli-reference.sh release-source "$RELEASE_TAG" automation/docs/sources/cli-reference.md
-          echo "sha=$(git -C release-source rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "latest=$(gh api "repos/$GH_REPO/releases/latest" --jq .tag_name)" >> "$GITHUB_OUTPUT"
-
-      - name: Create or update rolling PR
-        if: steps.generate.outputs.latest == steps.release.outputs.tag
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
-        with:
-          path: automation
-          add-paths: docs/sources/cli-reference.md
-          base: main
-          branch: docs/update-cli-reference
-          sign-commits: true
-          commit-message: 'docs: update CLI reference for ${{ steps.release.outputs.tag }}'
-          title: 'docs: update CLI reference for ${{ steps.release.outputs.tag }}'
-          body: |
-            Update the CLI, environment-variable, and configuration reference for [${{ steps.release.outputs.tag }}](https://github.com/${{ github.repository }}/releases/tag/${{ steps.release.outputs.tag }}).
-
-            Generated from commit [${{ steps.generate.outputs.sha }}](https://github.com/${{ github.repository }}/commit/${{ steps.generate.outputs.sha }}). This rolling PR is updated when another stable release ships.
-
-            Click **Approve workflows to run** to start CI and the Grafana documentation preview, then review and merge manually.
+        run: bash automation/scripts/publish-cli-reference.sh "$RELEASE_TAG" "$(git -C release-source rev-parse HEAD)" "$RUNNER_TEMP/cli-reference.md"
