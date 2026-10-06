@@ -14,7 +14,7 @@ weight: 3
 
 You can configure `gcx` with a configuration file or using environment variables.
 
-- A configuration file stores named stacks, named Grafana Cloud credentials, and contexts that bind them. `gcx` can layer system, user, and repository files. Check the [configuration file reference documentation](https://github.com/grafana/gcx/tree/main/docs/reference/configuration/index.md) for all options. 
+- A configuration file stores named stacks, named Grafana Cloud credentials, and contexts that bind them. `gcx` can layer system, user, and repository files. Check the [configuration file reference documentation](../cli-reference/#configuration) for all options.
   - If you have a file from an older `gcx` version, refer to [Migrate your gcx configuration](../migrate-configuration/).
 - Environment variables override the selected context in memory, so they work best in CI environments and are never persisted implicitly. Refer to [Configure `gcx` with environment variables](#configure-gcx-with-environment-variables) for more information.
 
@@ -176,7 +176,7 @@ gcx config view
 
 ## Configure `gcx` with environment variables 
 
-Every supported environment variable is listed in our [reference documentation](https://github.com/grafana/gcx/tree/main/docs/reference/environment-variables/index.md). 
+Every supported environment variable is listed in our [reference documentation](../cli-reference/#environment-variables).
 
 Since `gcx` connects to Grafana through the REST API, you must configure authentication credentials. At minimum, set the Grafana URL and organization ID:
 
@@ -186,8 +186,8 @@ GRAFANA_SERVER='http://localhost:3000' GRAFANA_ORG_ID='1' gcx config check
 
 Depending on your authentication method, also set one of the following:
 
-- If you use a [Grafana service account](https://grafana.com/docs/grafana/latest/administration/service-accounts/) (recommended), set a [token](https://github.com/grafana/gcx/tree/main/docs/reference/environment-variables/index.md#grafana_token).
-- If you use basic authentication, set a [username](https://github.com/grafana/gcx/tree/main/docs/reference/environment-variables/index.md#grafana_user) and a [password](https://github.com/grafana/gcx/tree/main/docs/reference/environment-variables/index.md#grafana_password).
+- If you use a [Grafana service account](https://grafana.com/docs/grafana/latest/administration/service-accounts/) (recommended), set a [token](../cli-reference/#grafana_token).
+- If you use basic authentication, set a [username](../cli-reference/#grafana_user) and a [password](../cli-reference/#grafana_password).
 
 After you configure authentication, you can start using `gcx`.
 
