@@ -203,34 +203,3 @@ After each stable release, `.github/workflows/publish-homebrew-formula.yml` runs
 If the workflow fails with a `401` or `permission denied` from `gh pr create` or `git push`, the App credentials used to authenticate against the tap have lapsed — check the Actions tab for the failing run and verify the secrets in the internal release runbook.
 
 You can re-run the publisher for a past tag via the workflow's `workflow_dispatch` trigger (Actions tab → "Publish Homebrew Formula" → Run workflow → enter the tag).
-
-## Released CLI reference
-
-`docs/sources/cli-reference.md` describes the latest stable release, including
-commands, flags, environment variables, and configuration. Edit the command help
-or source metadata rather than the generated page. Command PRs must not update
-this release snapshot.
-
-After publishing succeeds, the Release workflow calls `update-cli-reference.yaml`
-to generate from the latest stable release and open or update the rolling
-`docs/update-cli-reference` PR. Click **Approve workflows to run**, inspect CI and
-the Grafana docs preview, and merge manually. Bot commits use GitHub's signed
-`createCommitOnBranch` API.
-The workflow requires Actions to be allowed to create PRs; no extra token is needed.
-
-Retry against the latest stable release with:
-
-```sh
-gh workflow run update-cli-reference.yaml
-```
-
-To generate locally, check out the release into a separate directory, then run
-this from the checkout containing the renderer:
-
-```sh
-mise run reference:release -- /path/to/release-checkout v1.5.0 /tmp/cli-reference.md
-```
-
-Generation never publishes or creates a PR locally. The workflow uses the renderer
-on `main` and the command tree and config/environment generators in the release
-checkout, so renderer fixes can be retried without shipping a new binary.
