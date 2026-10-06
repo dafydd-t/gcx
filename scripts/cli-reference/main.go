@@ -14,10 +14,9 @@ import (
 )
 
 func main() {
-	version := flag.String("version", "", "Stable release tag")
+	version := flag.String("version", "", "Release tag")
 	configPath := flag.String("config", "", "Generated configuration reference")
 	envPath := flag.String("env", "", "Generated environment variable reference")
-	envGuide := flag.String("env-guide", "docs/design/environment-variables.md", "Additional environment variable documentation")
 	output := flag.String("output", "", "Output Markdown file")
 	flag.Parse()
 	if *version == "" || *configPath == "" || *envPath == "" || *output == "" {
@@ -31,16 +30,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	guide, err := os.ReadFile(*envGuide)
+	guide, err := os.ReadFile("docs/design/environment-variables.md")
 	if err != nil {
 		log.Fatal(err)
 	}
-	envDoc = []byte(supplementEnvironment(string(envDoc), string(guide)))
-	os.Args[0] = "gcx"
 	if err := os.Setenv("GCX_AGENT_MODE", "false"); err != nil {
 		log.Fatal(err)
 	}
-	page := render(root.Command(*version), *version, string(configDoc), string(envDoc))
+	// Cobra captures the executable name when it constructs completion help.
+	os.Args[0] = "gcx"
+	page := render(root.Command(*version), *version, string(configDoc), supplementEnvironment(string(envDoc), string(guide)))
 	if err := os.WriteFile(*output, []byte(page), 0600); err != nil {
 		log.Fatal(err)
 	}
@@ -48,17 +47,6 @@ func main() {
 
 func anchor(cmd *cobra.Command) string {
 	return strings.ReplaceAll(cmd.CommandPath(), " ", "-")
-}
-
-func publicCommands(cmd *cobra.Command) []*cobra.Command {
-	if cmd.Hidden {
-		return nil
-	}
-	result := []*cobra.Command{cmd}
-	for _, child := range cmd.Commands() {
-		result = append(result, publicCommands(child)...)
-	}
-	return result
 }
 
 func render(rootCmd *cobra.Command, version, configDoc, envDoc string) string {
@@ -82,14 +70,13 @@ Flag defaults below are for human mode. Agent mode changes defaults such as outp
 ## Commands
 
 `, version)
-	for _, cmd := range publicCommands(rootCmd) {
-		renderCommand(&out, cmd)
-	}
+	renderCommands(&out, rootCmd)
 	out.WriteString("## Environment variables\n\n")
-	out.WriteString(nestReference(envDoc))
+	envDoc = strings.ReplaceAll(envDoc, "\n## `", "\n### `")
+	out.WriteString(withoutTitle(envDoc))
 	out.WriteString("\n\n## Configuration\n\n")
 	out.WriteString("The following schema describes configuration fields and their types. See [Configuration](../configuration/) for setup examples.\n\n")
-	out.WriteString(nestReference(configDoc))
+	out.WriteString(withoutTitle(configDoc))
 	out.WriteString("\n")
 
 	// Time-dependent defaults otherwise change on every release-docs retry.
@@ -97,7 +84,10 @@ Flag defaults below are for human mode. Agent mode changes defaults such as outp
 	return dateDefault.ReplaceAllString(out.String(), `(default "YYYY-MM-DD")`)
 }
 
-func renderCommand(out *strings.Builder, cmd *cobra.Command) {
+func renderCommands(out *strings.Builder, cmd *cobra.Command) {
+	if cmd.Hidden {
+		return
+	}
 	cmd.InitDefaultHelpFlag()
 	fmt.Fprintf(out, "### `%s` {#%s}\n\n", cmd.CommandPath(), anchor(cmd))
 	description := cmd.Long
@@ -135,22 +125,14 @@ func renderCommand(out *strings.Builder, cmd *cobra.Command) {
 			fmt.Fprintf(out, "Inherits %s from [`%s`](#%s-flags).\n\n", strings.Join(names, ", "), parent.CommandPath(), anchor(parent))
 		}
 	}
+	for _, child := range cmd.Commands() {
+		renderCommands(out, child)
+	}
 }
 
-func nestReference(input string) string {
+func withoutTitle(input string) string {
 	_, body, _ := strings.Cut(strings.TrimSpace(input), "\n")
-	var out strings.Builder
-	inFence := false
-	for line := range strings.SplitSeq(strings.TrimSpace(body), "\n") {
-		if strings.HasPrefix(line, "```") {
-			inFence = !inFence
-		}
-		if !inFence && strings.HasPrefix(line, "## ") {
-			line = "#" + line
-		}
-		out.WriteString(line + "\n")
-	}
-	return strings.TrimSpace(out.String())
+	return strings.TrimSpace(body)
 }
 
 // The guide also documents variables consumed outside the tagged config structs.
@@ -163,11 +145,11 @@ func supplementEnvironment(envDoc, guide string) string {
 	}
 	for line := range strings.SplitSeq(guide, "\n") {
 		columns := strings.Split(line, "|")
-		if len(columns) != 5 {
+		if len(columns) != 5 || !strings.HasPrefix(strings.TrimSpace(columns[1]), "`") {
 			continue
 		}
 		name := strings.Trim(strings.TrimSpace(columns[1]), "`")
-		if !strings.Contains(name, "_") || seen[name] {
+		if seen[name] {
 			continue
 		}
 		seen[name] = true

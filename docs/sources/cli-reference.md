@@ -22279,6 +22279,11 @@ Overrides the sm provider's url configuration.
 Spill threshold in bytes for the `agents` codec (default `102400` = 100 KiB). Payloads above this are written to a temp file; a summary is printed instead. Invalid values fall back to the default. See output.md § Agents Codec
 
 
+### `CLAUDECODE`
+
+Truthy value activates agent mode
+
+
 ### `CLAUDE_CODE`
 
 Truthy value activates agent mode
@@ -22295,6 +22300,11 @@ Truthy value activates agent mode
 
 
 ### `AMAZON_Q`
+
+Truthy value activates agent mode
+
+
+### `OPENCODE`
 
 Truthy value activates agent mode
 

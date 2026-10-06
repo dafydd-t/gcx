@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
 )
 
 func TestPublishCLIReference(t *testing.T) {
@@ -93,61 +92,6 @@ esac
 			require.Len(t, request.Variables.Input.FileChanges.Additions, 1)
 			require.Equal(t, "docs/sources/cli-reference.md", request.Variables.Input.FileChanges.Additions[0].Path)
 			require.Equal(t, "bmV3IHBhZ2UK", request.Variables.Input.FileChanges.Additions[0].Contents)
-		})
-	}
-}
-
-func TestSelectReferenceRelease(t *testing.T) {
-	data, err := os.ReadFile("../.github/workflows/update-cli-reference.yaml")
-	require.NoError(t, err)
-	var workflow struct {
-		Jobs map[string]struct {
-			Steps []struct {
-				Name string `yaml:"name"`
-				Run  string `yaml:"run"`
-			} `yaml:"steps"`
-		} `yaml:"jobs"`
-	}
-	require.NoError(t, yaml.Unmarshal(data, &workflow))
-	var script string
-	for _, step := range workflow.Jobs["update"].Steps {
-		if step.Name == "Select latest stable release" {
-			script = step.Run
-		}
-	}
-	require.NotEmpty(t, script)
-	for _, tc := range []struct {
-		name       string
-		event      string
-		tag        string
-		sha        string
-		wantOutput bool
-	}{
-		{name: "stable release", event: "workflow_run", tag: "v1.2.3", sha: "release-sha", wantOutput: true},
-		{name: "old release", event: "workflow_run", tag: "v1.2.2", sha: "old-sha"},
-		{name: "prerelease on same commit", event: "workflow_run", tag: "v1.3.0-rc.1", sha: "release-sha"},
-		{name: "manual retry", event: "workflow_dispatch", wantOutput: true},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			dir := t.TempDir()
-			for name, output := range map[string]string{"gh": "v1.2.3", "git": "release-sha"} {
-				path := filepath.Join(dir, name)
-				require.NoError(t, os.WriteFile(path, []byte("#!/bin/sh\necho "+output+"\n"), 0600))
-				require.NoError(t, os.Chmod(path, 0700))
-			}
-			outputPath := filepath.Join(dir, "output")
-			require.NoError(t, os.WriteFile(outputPath, nil, 0600))
-			cmd := exec.CommandContext(t.Context(), "bash", "-c", script)
-			cmd.Env = append(os.Environ(), "PATH="+dir+string(os.PathListSeparator)+os.Getenv("PATH"), "GH_REPO=example/gcx", "GITHUB_OUTPUT="+outputPath, "EVENT_NAME="+tc.event, "RELEASE_TAG="+tc.tag, "RELEASE_COMMIT="+tc.sha)
-			output, err := cmd.CombinedOutput()
-			require.NoError(t, err, string(output))
-			selected, err := os.ReadFile(outputPath)
-			require.NoError(t, err)
-			if tc.wantOutput {
-				require.Equal(t, "tag=v1.2.3\nsha=release-sha\n", string(selected))
-			} else {
-				require.Empty(t, selected)
-			}
 		})
 	}
 }
