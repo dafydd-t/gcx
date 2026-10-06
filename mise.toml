@@ -124,11 +124,7 @@ depends = ["reference"]
 run = "mkdocs build -f mkdocs.yml -d ./build/documentation"
 
 [tasks."docs:refresh-cli"]
-description = "Trigger a CLI reference update PR"
-run = "gh workflow run update-cli-reference.yaml --repo grafana/gcx --ref main"
-
-[tasks."reference:release"]
-description = "Generate release references: <release-source-directory> <release-tag> <output-directory>"
+description = "Regenerate the latest stable CLI and configuration references locally"
 run = "bash scripts/generate-cli-reference.sh"
 
 [tasks.reference]

@@ -373,14 +373,13 @@ mise run reference
 
 ### Released CLI Reference
 
-`generate-cli-reference.sh` runs the renderer in `scripts/cli-reference/` against
-a stable release checkout. Commands and environment variables go in
+`mise run docs:refresh-cli` downloads the latest stable release source and runs
+the renderer in `scripts/cli-reference/` against it. Commands and environment variables go in
 `docs/sources/cli-reference.md`; the config schema replaces the generated section
 at the bottom of `docs/sources/configuration.md`, preserving the guide above it.
-`update-cli-reference.yaml` runs after a successful
-release and uses `publish-cli-reference.sh` to update a rolling docs-only PR with
-a signed GitHub API commit. The generated content is a release snapshot, not a
-drift target for command changes on `main`.
+After generation, review the diff, commit any changes, and open a separate
+documentation PR. The generated content is a release snapshot, not a drift target
+for command changes on `main`.
 
 ### CLI Reference (`scripts/cmd-reference/main.go`)
 
