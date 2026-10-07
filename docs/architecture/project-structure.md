@@ -8,7 +8,7 @@ gcx/
 │   └── gcx/           # Binary entry point (public surface)
 │       ├── main.go           # Version vars, main(), error handler
 │       ├── root/             # Root Cobra command, global flags, logging setup
-│       ├── auth/             # OAuth login command (browser-based PKCE flow)
+│       ├── login/            # 'login' and 'signup' commands (token, browser OAuth PKCE, Basic auth; account creation)
 │       ├── cloud/            # Cloud login, stack management, and OAuth user organisation memberships
 │       ├── config/           # 'config' subcommand implementations
 │       ├── resources/        # 'resources' subcommand implementations
@@ -176,10 +176,13 @@ gcx/
 │   ├── default-config.yaml   # Default config fixture
 │   └── folder.yaml           # Sample resource manifest
 │
+├── experimental/             # Separate Go modules, outside the CLI's build and dependencies
+│   └── sandbox/              # Runs gcx as wasip1 in wazero for embedding (module: github.com/grafana/gcx/experimental/sandbox, v0)
+│
 ├── bin/                      # Build output (gitignored)
 ├── build/                    # mkdocs output (gitignored)
 │
-├── go.mod / go.sum           # Go module definition (module: github.com/grafana/gcx)
+├── go.mod / go.sum           # Main Go module definition (module: github.com/grafana/gcx)
 ├── .golangci.yaml            # Linter configuration (golangci-lint v2)
 ├── .goreleaser.yaml          # Release pipeline (cross-platform builds + GitHub Release)
 ├── mise.toml                 # Reproducible toolchain (Go, golangci-lint, goreleaser, Python)
@@ -194,7 +197,9 @@ gcx/
 output formatting, and error translation. It holds no business logic.
 
 `internal/` enforces Go's package visibility rule — external consumers cannot
-import these packages. This is intentional: gcx has no public Go API.
+import these packages. This is intentional: the main module has no public Go
+API. The one exception is `experimental/sandbox`, a separate v0 module for
+embedding gcx (see its README).
 The split within `internal/` mirrors functional layers (config, resources,
 server) rather than technical concerns, making it easy to locate code by feature.
 
@@ -373,7 +378,7 @@ mise run reference
 
 ### Released CLI Reference
 
-`mise run docs:refresh-cli` downloads the latest stable release source and runs
+`mise run docs:refresh` downloads the latest stable release source and runs
 the renderer in `scripts/cli-reference/` against it. Commands and environment variables go in
 `docs/sources/cli-reference.md`; the config schema replaces the generated section
 at the bottom of `docs/sources/configuration.md`, preserving the guide above it.

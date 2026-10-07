@@ -40,7 +40,7 @@ This generates a changelog entry (via Claude), updates `CHANGELOG.md` and `.rele
 The tag push triggers the GoReleaser workflow.
 
 After GoReleaser successfully publishes a stable release, remind the user to run
-`mise run docs:refresh-cli`, review the changes to `docs/sources/cli-reference.md`
+`mise run docs:refresh`, review the changes to `docs/sources/cli-reference.md`
 and `docs/sources/configuration.md`, and open a separate documentation PR if there
 are changes. The task generates references for the latest stable release.
 
