@@ -121,7 +121,7 @@ run = """
 docker run --rm -v "$PWD/docs/sources:/hugo/content/docs/grafana/next/as-code/observability-as-code/grafana-cli/gcx:ro" grafana/docs-base:latest /bin/bash -c 'make hugo'
 """
 
-[tasks."docs:refresh-cli"]
+[tasks."docs:refresh"]
 description = "Regenerate the latest stable CLI and configuration references locally"
 run = "bash scripts/generate-cli-reference.sh"
 

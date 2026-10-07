@@ -8,7 +8,7 @@ gcx/
 │   └── gcx/           # Binary entry point (public surface)
 │       ├── main.go           # Version vars, main(), error handler
 │       ├── root/             # Root Cobra command, global flags, logging setup
-│       ├── auth/             # OAuth login command (browser-based PKCE flow)
+│       ├── login/            # 'login' and 'signup' commands (token, browser OAuth PKCE, Basic auth; account creation)
 │       ├── cloud/            # Cloud login, stack management, and OAuth user organisation memberships
 │       ├── config/           # 'config' subcommand implementations
 │       ├── resources/        # 'resources' subcommand implementations
@@ -173,10 +173,13 @@ gcx/
 │   ├── default-config.yaml   # Default config fixture
 │   └── folder.yaml           # Sample resource manifest
 │
+├── experimental/             # Separate Go modules, outside the CLI's build and dependencies
+│   └── sandbox/              # Runs gcx as wasip1 in wazero for embedding (module: github.com/grafana/gcx/experimental/sandbox, v0)
+│
 ├── bin/                      # Build output (gitignored)
 ├── build/                    # Local build artifacts (gitignored)
 │
-├── go.mod / go.sum           # Go module definition (module: github.com/grafana/gcx)
+├── go.mod / go.sum           # Main Go module definition (module: github.com/grafana/gcx)
 ├── .golangci.yaml            # Linter configuration (golangci-lint v2)
 ├── .goreleaser.yaml          # Release pipeline (cross-platform builds + GitHub Release)
 ├── mise.toml                 # Reproducible toolchain (Go, golangci-lint, goreleaser)
@@ -189,7 +192,9 @@ gcx/
 output formatting, and error translation. It holds no business logic.
 
 `internal/` enforces Go's package visibility rule — external consumers cannot
-import these packages. This is intentional: gcx has no public Go API.
+import these packages. This is intentional: the main module has no public Go
+API. The one exception is `experimental/sandbox`, a separate v0 module for
+embedding gcx (see its README).
 The split within `internal/` mirrors functional layers (config, resources,
 server) rather than technical concerns, making it easy to locate code by feature.
 
@@ -215,7 +220,7 @@ tool versions are used regardless of shell configuration.
 | `mise run lint` | Runs `golangci-lint run -c .golangci.yaml` |
 | `mise run deps` | `go mod download` |
 | `mise run docs` | Builds Grafana website docs with Docker; no reference generation |
-| `mise run docs:refresh-cli` | Generates CLI and configuration references from the latest stable release |
+| `mise run docs:refresh` | Generates CLI and configuration references from the latest stable release |
 | `mise run serve-docs` | Grafana website preview on localhost:3002 |
 | `mise run test-env-up` | `docker-compose up -d` + health-wait loop |
 | `mise run test-env-down` | `docker-compose down` |
@@ -352,13 +357,13 @@ tree (e.g. fully offline work); it is never required.
 
 ## 6. Code Generation (scripts/)
 
-The release reference is generated explicitly with `mise run docs:refresh-cli`.
+The release reference is generated explicitly with `mise run docs:refresh`.
 Normal `mise run docs` builds the Grafana website documentation using Docker;
 it neither regenerates nor checks the release snapshot against `main`.
 
 ### Released CLI Reference
 
-`mise run docs:refresh-cli` downloads the latest stable release source and runs
+`mise run docs:refresh` downloads the latest stable release source and runs
 the renderer in `scripts/cli-reference/` against it. Commands and environment variables go in
 `docs/sources/cli-reference.md`; the config schema replaces the generated section
 at the bottom of `docs/sources/configuration.md`, preserving the guide above it.
@@ -494,7 +499,7 @@ mise run all                  # lint + tests + build + docs (full gate)
 mise run docs                 # build Grafana website docs (Docker)
 mise run serve-docs           # preview at localhost:3002
 # Release snapshot generation is separate from normal command PRs:
-mise run docs:refresh-cli     # regenerate from the latest stable release, then open a PR
+mise run docs:refresh     # regenerate from the latest stable release, then open a PR
 ```
 
 ### Integration Testing (manual)
