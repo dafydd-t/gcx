@@ -71,7 +71,7 @@ gcx assistant mcp-servers update LocalTools \
 
 ## Private data source connect (PDC)
 
-To reach an MCP server on a private network, route its connections through a PDC network with `--pdc-network <network-id>`. The network needs an agent that can resolve and reach the server URL. If the PDC route is unavailable, the connection fails instead of falling back to direct access.
+To reach an MCP server on a private network, route its connections through a PDC network by setting `--pdc-network <network-id>`. The PDC network must have at least one pdc-agent connected to it, or you will get a connection error. If the PDC route is unavailable, the connection fails rather than falling back to direct access.
 
 ```sh
 gcx assistant mcp-servers update InternalDocs --pdc-network <network-id>

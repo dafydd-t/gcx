@@ -493,6 +493,7 @@ reports that OAuth is required.`,
   gcx assistant mcp-servers create --name SharedTools --url https://mcp.example.com/mcp \
     --scope tenant --header "Authorization=Bearer <token>"
 
+  # Add an MCP server connected over Private data source connect
   gcx assistant mcp-servers create --name InternalDocs --url https://docs-mcp.internal.example.com/mcp \
     --pdc-network <network-id>
 
@@ -624,6 +625,8 @@ header list, so any existing header you don't list is removed.`,
   gcx assistant mcp-servers update SharedTools --description "Shared internal MCP tools"
   gcx assistant mcp-servers update SharedTools --header "X-API-Key=<token>"
   gcx assistant mcp-servers update InternalDocs --pdc-network <network-id>
+
+  # Stop using PDC and connect to the MCP server directly
   gcx assistant mcp-servers update InternalDocs --pdc-network ""`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -784,7 +787,7 @@ func (in *inputFlags) bind(flags *pflag.FlagSet) {
 	flags.StringVar(&in.Scope, "scope", "", "MCP server scope: user or tenant")
 	flags.StringArrayVar(&in.Headers, "header", nil, "Custom header as NAME=VALUE (repeatable; tenant scope requires an auth header)")
 	flags.StringArrayVar(&in.Applications, "application", nil, "Assistant application allowed to use this server (repeatable)")
-	flags.StringVar(&in.PDCNetwork, "pdc-network", "", "Private data source connect (PDC) network ID to route connections through (empty clears it)")
+	flags.StringVar(&in.PDCNetwork, "pdc-network", "", "Private data source connect (PDC) network ID to proxy connections through. Setting it to an empty string clears it.")
 	in.flags = flags
 }
 
