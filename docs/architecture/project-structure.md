@@ -31,7 +31,7 @@ gcx/
 │       └── fail/             # Error → DetailedError conversion, exit codes
 │
 ├── internal/                 # All non-public packages (Go enforced)
-│   ├── agent/                # Agent-mode detection, command annotations, known-resource registry with operation hints
+│   ├── agent/                # Agent mode and identity detection, command annotations, known-resource registry with operation hints
 │   ├── agentlog/             # Agent invocation failure logger (opt-in JSONL disk log, XDG state dir — wired into handleError in cmd/gcx/main.go)
 │   ├── assistant/            # Assistant client packages (prompt state, investigations, MCP server integrations)
 │   │   ├── mcpservers/       # MCP-servers HTTP client (offset pagination, full-exhaustion List)
@@ -69,7 +69,7 @@ gcx/
 │   │   │   └── settings/     # PluginSettings
 │   │   ├── dbo11y/           # Database Observability provider (query/discovery views, no CRUD resources)
 │   │   │   └── instances/    # Instance inventory + health/query-performance snapshot from postgres_exporter + pg_stat_statements
-│   │   ├── alert/            # Alert provider (rules and groups)
+│   │   ├── alert/            # Alert provider (rules, groups, provisioning, native routing trees)
 │   │   ├── assistant/        # Assistant provider — lift-and-shift of the `gcx assistant` command tree; TypedRegistrations() registers the MCPServer adapter (internal/assistant/mcpserver/); exports ResolveClientOptions and RequireGrafanaCloud for other command trees embedding Assistant calls (used by `instrumentation check --fix-plan=assistant`)
 │   │   ├── dashboards/       # Dashboards provider (CRUD, search, version history, snapshot) — CLI: `gcx dashboards`
 │   │   │   ├── descriptor/   # Descriptor helpers (GVK, preferred version resolution)
@@ -83,6 +83,7 @@ gcx/
 │   │   │   ├── helm/         # Helm command formatter for the setup wizard
 │   │   │   ├── output/       # View types and table/JSON codecs (clusters, apps, services; wait/mutation envelopes)
 │   │   │   └── rmw/          # Read-modify-write helper with optimistic-lock guard
+│   │   ├── native/           # Shared native-resource binding (native.Bind → descriptor + dynamic client after validation; ReadManifest); no CLI imports
 │   │   ├── k6/              # k6 Cloud provider (projects, tests, runs, envvars)
 │   │   ├── kg/               # Knowledge Graph (Asserts) provider (rules, entities, insights, diagnose, quality reports)
 │   │   ├── slo/              # SLO provider implementation
@@ -280,7 +281,10 @@ this.
 
 ## 4. CI/CD Pipeline (GitHub Actions)
 
-Three workflow files under `.github/workflows/`:
+The main workflows under `.github/workflows/` are described below. The others are
+`publish-homebrew-formula.yml` (updates the Homebrew tap after a release),
+`deploy-pr-preview.yml` (docs previews for PRs), and `claude.yml` /
+`claude-code-review.yml` (automated assistance and review).
 
 ### ci.yaml — Pull Request and Main Branch Gate
 
@@ -331,6 +335,22 @@ cutting a new release. Follows the same build + upload + deploy pattern as
 the release workflow.
 
 ---
+
+### sandbox.yaml — wasip1 Build and Sandbox Tests
+
+Triggered on: PRs and pushes to `main` that touch Go code, `go.mod`/`go.sum`,
+`experimental/sandbox/` or `mise.toml`. Builds gcx for `GOOS=wasip1` with
+`experimental/sandbox/build.sh`, then lints, vets and tests the
+`experimental/sandbox` module, including end-to-end tests against the built
+module.
+
+### publish-gcx-wasm.yaml — gcx.wasm Images
+
+Triggered on: pushes to `main`, `experimental/sandbox/v*` tags, and manual runs
+(with an optional `sandbox_version` to publish an existing sandbox tag). Builds
+`gcx.wasm`, precompiles it natively on amd64 and arm64 runners, and publishes
+`ghcr.io/grafana/gcx-wasm` images holding `/gcx.wasm`, `/gcx.commit` and the
+compiled code in `/cache/`. See the sandbox README's "Prebuilt images" section.
 
 ## 5. Dependency Management
 
