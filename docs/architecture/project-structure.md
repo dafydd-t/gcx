@@ -383,8 +383,7 @@ the renderer in `scripts/cli-reference/` against it. Commands and environment va
 `docs/sources/cli-reference.md`; the config schema replaces the generated section
 at the bottom of `docs/sources/configuration.md`, preserving the guide above it.
 After generation, review the diff, commit any changes, and open a separate
-documentation PR. The generated content is a release snapshot, not a drift target
-for command changes on `main`.
+documentation PR. 
 
 ### CLI Reference (`scripts/cmd-reference/main.go`)
 
