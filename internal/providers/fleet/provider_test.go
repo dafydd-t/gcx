@@ -218,19 +218,19 @@ func TestPipelineTableCodec_Encode(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		codec      fleet.PipelineTableCodec
+		format     string
 		wantHeader []string
 		wantValues []string
 	}{
 		{
 			name:       "standard format has ID/NAME/ENABLED",
-			codec:      fleet.PipelineTableCodec{Wide: false},
+			format:     "table",
 			wantHeader: []string{"ID", "NAME", "ENABLED"},
 			wantValues: []string{"p-1", "alpha", "true", "p-2", "beta", "false"},
 		},
 		{
 			name:       "wide format adds MATCHERS",
-			codec:      fleet.PipelineTableCodec{Wide: true},
+			format:     "wide",
 			wantHeader: []string{"ID", "NAME", "ENABLED", "MATCHERS"},
 			wantValues: []string{"p-1", "alpha", "true", "env=prod", "p-2", "beta", "false"},
 		},
@@ -239,7 +239,7 @@ func TestPipelineTableCodec_Encode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			err := tt.codec.Encode(&buf, pipelines)
+			err := fleet.PipelineTable().Codec(tt.format).Encode(&buf, pipelines)
 			require.NoError(t, err)
 
 			output := buf.String()
@@ -251,7 +251,7 @@ func TestPipelineTableCodec_Encode(t *testing.T) {
 			}
 
 			// Verify "-" for empty matchers in wide mode.
-			if tt.codec.Wide {
+			if tt.format == "wide" {
 				lines := strings.Split(strings.TrimSpace(output), "\n")
 				require.GreaterOrEqual(t, len(lines), 3) // header + 2 data lines
 				assert.Contains(t, lines[2], "-", "empty matchers should show as -")
@@ -279,7 +279,7 @@ func TestPipelineTableCodec_WideShowsConfigType(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	codec := fleet.PipelineTableCodec{Wide: true}
+	codec := fleet.PipelineTable().Codec("wide")
 	require.NoError(t, codec.Encode(&buf, pipelines))
 
 	output := buf.String()
@@ -298,7 +298,7 @@ func TestPipelineTableCodec_WideShowsConfigType(t *testing.T) {
 }
 
 func TestPipelineTableCodec_WrongType(t *testing.T) {
-	codec := fleet.PipelineTableCodec{}
+	codec := fleet.PipelineTable().Codec("table")
 	var buf bytes.Buffer
 	err := codec.Encode(&buf, "not a pipeline slice")
 	require.Error(t, err)
