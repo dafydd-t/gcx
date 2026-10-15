@@ -14,7 +14,7 @@ import (
 )
 
 // ---------------------------------------------------------------------------
-// policyTableCodec
+// PolicyTable
 // ---------------------------------------------------------------------------
 
 func TestPolicyTableCodec_List(t *testing.T) {
@@ -25,7 +25,7 @@ func TestPolicyTableCodec_List(t *testing.T) {
 
 	t.Run("table format", func(t *testing.T) {
 		var buf bytes.Buffer
-		codec := traces.NewPolicyTableCodec(false)
+		codec := traces.PolicyTable().Codec("table")
 		err := codec.Encode(&buf, policies)
 		require.NoError(t, err)
 
@@ -45,7 +45,7 @@ func TestPolicyTableCodec_List(t *testing.T) {
 
 	t.Run("wide format", func(t *testing.T) {
 		var buf bytes.Buffer
-		codec := traces.NewPolicyTableCodec(true)
+		codec := traces.PolicyTable().Codec("wide")
 		err := codec.Encode(&buf, policies)
 		require.NoError(t, err)
 
@@ -56,15 +56,15 @@ func TestPolicyTableCodec_List(t *testing.T) {
 
 	t.Run("wrong type", func(t *testing.T) {
 		var buf bytes.Buffer
-		codec := traces.NewPolicyTableCodec(false)
+		codec := traces.PolicyTable().Codec("table")
 		err := codec.Encode(&buf, "not a slice")
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "expected []Policy")
+		assert.Contains(t, err.Error(), "expected []traces.Policy")
 	})
 
 	t.Run("empty list", func(t *testing.T) {
 		var buf bytes.Buffer
-		codec := traces.NewPolicyTableCodec(false)
+		codec := traces.PolicyTable().Codec("table")
 		err := codec.Encode(&buf, []traces.Policy{})
 		require.NoError(t, err)
 		// Should still have header
@@ -72,7 +72,7 @@ func TestPolicyTableCodec_List(t *testing.T) {
 	})
 
 	t.Run("decode unsupported", func(t *testing.T) {
-		codec := traces.NewPolicyTableCodec(false)
+		codec := traces.PolicyTable().Codec("table")
 		err := codec.Decode(nil, nil)
 		require.Error(t, err)
 	})
@@ -132,7 +132,7 @@ func TestPoliciesList_Integration(t *testing.T) {
 
 	// Verify table output works end-to-end
 	var buf bytes.Buffer
-	codec := traces.NewPolicyTableCodec(false)
+	codec := traces.PolicyTable().Codec("table")
 	require.NoError(t, codec.Encode(&buf, got))
 	assert.Contains(t, buf.String(), "p1")
 	assert.Contains(t, buf.String(), "p2")
