@@ -93,7 +93,7 @@ type recommendationsListOpts struct {
 }
 
 func (o *recommendationsListOpts) setup(flags *pflag.FlagSet) {
-	cmdio.RegisterTable(&o.IO, recommendationTable())
+	cmdio.RegisterTable(&o.IO, RecommendationTable())
 	o.IO.DefaultFormat("table")
 	o.IO.BindFlags(flags)
 }
@@ -127,7 +127,7 @@ func (h *tracesHelper) recommendationsListCommand() *cobra.Command {
 	return cmd
 }
 
-func recommendationTable() cmdio.Table[Recommendation] {
+func RecommendationTable() cmdio.Table[Recommendation] {
 	return cmdio.Table[Recommendation]{
 		Columns: []cmdio.Column[Recommendation]{
 			{Header: "ID", Content: func(r Recommendation) string { return r.ID }},

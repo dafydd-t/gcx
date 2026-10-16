@@ -1,3 +1,0 @@
-ID     MESSAGE              TAGS         APPLIED  DISMISSED  STALE  CREATED AT            ACTIONS
-rec-2  Reduce noisy traces  volume,cost  true     false      false  2026-09-01T12:00:00Z  2
-rec-1  Keep errors                       false    true       true                         0

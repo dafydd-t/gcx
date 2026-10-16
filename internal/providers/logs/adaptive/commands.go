@@ -615,7 +615,7 @@ type exemptionsListOpts struct {
 }
 
 func (o *exemptionsListOpts) setup(cmd *cobra.Command) {
-	cmdio.RegisterTable(&o.IO, exemptionsTable())
+	cmdio.RegisterTable(&o.IO, ExemptionsTable())
 	o.IO.DefaultFormat("table")
 	o.IO.BindFlags(cmd.Flags())
 	cmd.Flags().Int64Var(&o.Limit, "limit", 50, "Maximum number of exemptions to return (0 for no limit)")
@@ -654,7 +654,7 @@ func (h *logsHelper) exemptionsListCommand() *cobra.Command {
 	return cmd
 }
 
-func exemptionsTable() cmdio.Table[Exemption] {
+func ExemptionsTable() cmdio.Table[Exemption] {
 	return cmdio.Table[Exemption]{
 		Columns: []cmdio.Column[Exemption]{
 			{Header: "ID", Content: func(r Exemption) string { return r.ID }},
@@ -818,7 +818,7 @@ type segmentsListOpts struct {
 }
 
 func (o *segmentsListOpts) setup(cmd *cobra.Command) {
-	cmdio.RegisterTable(&o.IO, segmentsTable())
+	cmdio.RegisterTable(&o.IO, SegmentsTable())
 	o.IO.DefaultFormat("table")
 	o.IO.BindFlags(cmd.Flags())
 	cmd.Flags().Int64Var(&o.Limit, "limit", 50, "Maximum number of segments to return (0 for no limit)")
@@ -857,7 +857,7 @@ func (h *logsHelper) segmentsListCommand() *cobra.Command {
 	return cmd
 }
 
-func segmentsTable() cmdio.Table[LogSegment] {
+func SegmentsTable() cmdio.Table[LogSegment] {
 	return cmdio.Table[LogSegment]{
 		Columns: []cmdio.Column[LogSegment]{
 			{Header: "ID", Content: func(r LogSegment) string { return r.ID }},
