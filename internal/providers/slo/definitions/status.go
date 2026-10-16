@@ -380,6 +380,7 @@ func parseSampleValue(sample prometheus.Sample) *float64 {
 // status table codec
 // ---------------------------------------------------------------------------
 
+// StatusTable declares the narrow and wide columns for SLO status output.
 func StatusTable() cmdio.Table[StatusResult] {
 	return cmdio.Table[StatusResult]{Columns: []cmdio.Column[StatusResult]{
 		{Header: "NAME", Content: func(r StatusResult) string { return r.Name }},

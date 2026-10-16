@@ -237,6 +237,7 @@ func GroupsStatusTable() cmdio.Table[RuleGroup] {
 				return g.LastEvaluation
 			}},
 		},
+		// Keep prose in the table codec so JSON, YAML and agents still encode [].
 		Empty: func(w io.Writer) error {
 			cmdio.Info(w, "No alert rule groups found.")
 			return nil

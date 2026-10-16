@@ -968,6 +968,7 @@ func statusDisplayName(r CheckStatusResult) string {
 	return name
 }
 
+// StatusTable declares the narrow and wide columns for check status output.
 func StatusTable() cmdio.Table[CheckStatusResult] {
 	return cmdio.Table[CheckStatusResult]{Columns: []cmdio.Column[CheckStatusResult]{
 		{Header: "NAME", Content: statusDisplayName},
