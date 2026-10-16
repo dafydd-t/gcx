@@ -69,8 +69,8 @@ func ExportStackTableCodec(wide bool) interface {
 	return &stackTableCodec{Wide: wide}
 }
 
-// ExportRegionTableCodec returns the regions table codec for external tests.
-func ExportRegionTableCodec() interface {
+// ExportRegionTable returns the regions table codec for external tests.
+func ExportRegionTable() interface {
 	Encode(w io.Writer, v any) error
 } {
 	return regionTable().Codec("table")

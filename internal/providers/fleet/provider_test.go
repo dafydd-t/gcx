@@ -207,10 +207,10 @@ func TestCollectorToResource_RetainsID(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// PipelineTableCodec tests
+// PipelineTable tests
 // ---------------------------------------------------------------------------
 
-func TestPipelineTableCodec_Encode(t *testing.T) {
+func TestPipelineTable_Encode(t *testing.T) {
 	pipelines := []fleet.Pipeline{
 		{ID: "p-1", Name: "alpha", Enabled: new(true), Matchers: []string{"env=prod"}},
 		{ID: "p-2", Name: "beta", Enabled: new(false), Matchers: nil},
@@ -260,14 +260,14 @@ func TestPipelineTableCodec_Encode(t *testing.T) {
 	}
 }
 
-// TestPipelineTableCodec_WideShowsConfigType asserts the wide table surfaces the
+// TestPipelineTable_WideShowsConfigType asserts the wide table surfaces the
 // pipeline config type, so OTel pipelines are distinguishable from Alloy ones.
 // An empty configType (the Alloy default) renders as "-".
 //
 // The assertions index the column, and the fixtures carry no hyphen in their ID
 // or name: a plain substring check for "-" passes on any row that contains a
 // hyphen anywhere, whatever the codec renders in the config type column.
-func TestPipelineTableCodec_WideShowsConfigType(t *testing.T) {
+func TestPipelineTable_WideShowsConfigType(t *testing.T) {
 	// Wide columns: ID, NAME, ENABLED, CONFIG TYPE, MATCHERS.
 	const configTypeColumn = 3
 
@@ -297,7 +297,7 @@ func TestPipelineTableCodec_WideShowsConfigType(t *testing.T) {
 	assert.Equal(t, "-", alloyRow[configTypeColumn], "empty configType should render as -")
 }
 
-func TestPipelineTableCodec_WrongType(t *testing.T) {
+func TestPipelineTable_WrongType(t *testing.T) {
 	codec := fleet.PipelineTable().Codec("table")
 	var buf bytes.Buffer
 	err := codec.Encode(&buf, "not a pipeline slice")

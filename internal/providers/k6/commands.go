@@ -1769,12 +1769,12 @@ func newUpdateAllowedProjectsCommand(loader CloudConfigLoader) *cobra.Command { 
 
 func AllowedLoadZoneTable() cmdio.Table[AllowedLoadZone] {
 	return cmdio.Table[AllowedLoadZone]{Columns: []cmdio.Column[AllowedLoadZone]{
-		{Header: "ID", Content: func(p AllowedLoadZone) string { return strconv.Itoa(p.ID) }},
-		{Header: "NAME", Content: func(p AllowedLoadZone) string {
-			if p.Name == "" {
+		{Header: "ID", Content: func(z AllowedLoadZone) string { return strconv.Itoa(z.ID) }},
+		{Header: "NAME", Content: func(z AllowedLoadZone) string {
+			if z.Name == "" {
 				return "-"
 			}
-			return p.Name
+			return z.Name
 		}},
 	}}
 }
