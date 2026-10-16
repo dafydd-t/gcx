@@ -607,3 +607,14 @@ a bare array (no envelope to carry `list_meta`) and its `--limit` counts
 different units per format (flattened rules in the table, groups in JSON).
 The envelope and unit decisions are tracked in
 `docs/research/2026-07-17-global-limit-investigation.md` §6–7.
+
+### CSV export codecs
+
+CSV is opt-in through `output.RegisterCSV(&opts.IO)` before output flags
+are bound. Results implement `output.CSVMarshaler`, returning column names and rectangular
+string rows. The typed `output.CSV[T]` codec also accepts a projection for payloads
+such as slices that cannot implement the interface. It handles CSV escaping and writer errors;
+projections define the export schema independently of `Table[T]` display rules.
+Keep original values and all returned rows, use explicit units, and prefix dynamic
+label columns to avoid collisions. Empty results emit headers when the schema is
+known. Do not register CSV on commands without a projection.
