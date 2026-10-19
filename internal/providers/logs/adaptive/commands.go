@@ -254,6 +254,7 @@ func (h *logsHelper) patternsStatsCommand() *cobra.Command {
 	return cmd
 }
 
+// Calculated column widths and --no-truncate keep this outside the shared table declaration.
 type segmentStatsTableCodec struct {
 	wide bool
 	opts *patternsStatsOpts
@@ -301,7 +302,7 @@ func (c *segmentStatsTableCodec) Decode(_ io.Reader, _ any) error {
 	return errors.New("table format does not support decoding")
 }
 
-// patternsTableCodec renders LogRecommendations as a tabular table.
+// --top aggregates the remaining rows and calculates column widths from the result.
 type patternsTableCodec struct {
 	wide bool
 	opts *patternsListOpts
@@ -1128,6 +1129,7 @@ func (h *logsHelper) dropRulesGetCommand() *cobra.Command {
 	return cmd
 }
 
+// Both single-record mutations and lists use this codec; Table only accepts slices.
 type dropRulesTableCodec struct{ wide bool }
 
 func (c *dropRulesTableCodec) Format() format.Format {

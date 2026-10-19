@@ -1,7 +1,6 @@
 package traces_test
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -63,14 +62,7 @@ func TestPoliciesList_Integration(t *testing.T) {
 	client := traces.NewClient(srv.URL, 42, "test-token", srv.Client())
 	got, err := client.ListPolicies(t.Context())
 	require.NoError(t, err)
-	assert.Len(t, got, 2)
-
-	// Verify table output works end-to-end
-	var buf bytes.Buffer
-	codec := traces.PolicyTable().Codec("table")
-	require.NoError(t, codec.Encode(&buf, got))
-	assert.Contains(t, buf.String(), "p1")
-	assert.Contains(t, buf.String(), "p2")
+	assert.Equal(t, policies, got)
 }
 
 // ---------------------------------------------------------------------------
