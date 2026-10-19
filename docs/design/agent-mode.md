@@ -33,7 +33,8 @@ spellings: `--agent=t` is accepted but selects false, while `--agent=yes` is
 rejected by Cobra. These are existing parser quirks, not recommended syntax.
 
 **Identity priority:** supported `GCX_AGENT_NAME` > native boolean signals
-in source order > native session markers in source order > supported
+in source order > native session markers in source order >
+`OPENCLAW_SHELL=exec` > supported
 `AI_AGENT` > `AGENT=goose`. Kilo precedes OpenCode. Qwen precedes Gemini CLI.
 A native marker takes precedence over a shared variable inherited from an outer
 harness. `GCX_AGENT_NAME` is the deliberate gcx override for a nested agent.
@@ -136,3 +137,9 @@ EOF, in-band `gcx.error` document on failure with agreeing exit code,
 explicit `-o` overrides honored, stdin closed.
 
 See [environment-variables.md § Agent Mode Variables](environment-variables.md#agent-mode-variables) for the full variable reference.
+
+### 6.5 Mutation Result Family
+
+See [output.md § 12](output.md#12-mutation-command-output) for the shared
+mutation result family, optional failure source paths, skip-reason counts,
+and JSON examples. Agent-mode JSON uses the same result types and fields.
