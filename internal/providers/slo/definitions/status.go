@@ -117,10 +117,7 @@ grafana_slo_* metrics.`,
 			}
 
 			if len(slos) == 0 {
-				// Prose formats keep the historical notice; structured
-				// formats (json/yaml/agents) must still emit exactly one
-				// document, so the empty result set goes through the codec.
-				if opts.IO.OutputFormat == "table" || opts.IO.OutputFormat == "wide" || opts.IO.OutputFormat == "graph" {
+				if opts.IO.OutputFormat == "graph" {
 					cmdio.Info(cmd.OutOrStdout(), "No SLO definitions found.")
 					return nil
 				}
@@ -382,18 +379,25 @@ func parseSampleValue(sample prometheus.Sample) *float64 {
 
 // StatusTable declares the narrow and wide columns for SLO status output.
 func StatusTable() cmdio.Table[StatusResult] {
-	return cmdio.Table[StatusResult]{Columns: []cmdio.Column[StatusResult]{
-		{Header: "NAME", Content: func(r StatusResult) string { return r.Name }},
-		{Header: "UUID", Content: func(r StatusResult) string { return r.UUID }},
-		{Header: "OBJECTIVE", Content: func(r StatusResult) string { return formatPercent(r.Objective) }},
-		{Header: "WINDOW", Content: func(r StatusResult) string { return r.Window }},
-		{Header: "SLI", Content: func(r StatusResult) string { return formatOptionalPercent(r.SLI) }},
-		{Header: "BUDGET", Content: func(r StatusResult) string { return formatOptionalBudget(r.Budget) }},
-		{Header: "BURN_RATE", Visible: cmdio.WideOnly, Content: func(r StatusResult) string { return formatOptionalBurnRate(r.BurnRate) }},
-		{Header: "SLI_1H", Visible: cmdio.WideOnly, Content: func(r StatusResult) string { return formatOptionalPercent(r.SLI1h) }},
-		{Header: "SLI_1D", Visible: cmdio.WideOnly, Content: func(r StatusResult) string { return formatOptionalPercent(r.SLI1d) }},
-		{Header: "STATUS", Content: func(r StatusResult) string { return r.Status }},
-	}}
+	return cmdio.Table[StatusResult]{
+		Columns: []cmdio.Column[StatusResult]{
+			{Header: "NAME", Content: func(r StatusResult) string { return r.Name }},
+			{Header: "UUID", Content: func(r StatusResult) string { return r.UUID }},
+			{Header: "OBJECTIVE", Content: func(r StatusResult) string { return formatPercent(r.Objective) }},
+			{Header: "WINDOW", Content: func(r StatusResult) string { return r.Window }},
+			{Header: "SLI", Content: func(r StatusResult) string { return formatOptionalPercent(r.SLI) }},
+			{Header: "BUDGET", Content: func(r StatusResult) string { return formatOptionalBudget(r.Budget) }},
+			{Header: "BURN_RATE", Visible: cmdio.WideOnly, Content: func(r StatusResult) string { return formatOptionalBurnRate(r.BurnRate) }},
+			{Header: "SLI_1H", Visible: cmdio.WideOnly, Content: func(r StatusResult) string { return formatOptionalPercent(r.SLI1h) }},
+			{Header: "SLI_1D", Visible: cmdio.WideOnly, Content: func(r StatusResult) string { return formatOptionalPercent(r.SLI1d) }},
+			{Header: "STATUS", Content: func(r StatusResult) string { return r.Status }},
+		},
+		// Keep prose in the table codec so JSON, YAML and agents still encode [].
+		Empty: func(w io.Writer) error {
+			cmdio.Info(w, "No SLO definitions found.")
+			return nil
+		},
+	}
 }
 
 // ---------------------------------------------------------------------------

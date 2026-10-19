@@ -220,10 +220,7 @@ Prometheus datasource, the values here come only from the app.`,
 			}
 
 			if len(filtered) == 0 {
-				// Prose formats keep the historical notice; structured
-				// formats (json/yaml/agents) must still emit exactly one
-				// document, so the empty result set goes through the codec.
-				if opts.IO.OutputFormat == "table" || opts.IO.OutputFormat == "wide" || opts.IO.OutputFormat == "graph" {
+				if opts.IO.OutputFormat == "graph" {
 					cmdio.Info(cmd.OutOrStdout(), "No checks found.")
 					return nil
 				}
@@ -970,28 +967,35 @@ func statusDisplayName(r CheckStatusResult) string {
 
 // StatusTable declares the narrow and wide columns for check status output.
 func StatusTable() cmdio.Table[CheckStatusResult] {
-	return cmdio.Table[CheckStatusResult]{Columns: []cmdio.Column[CheckStatusResult]{
-		{Header: "NAME", Content: statusDisplayName},
-		{Header: "JOB", Content: func(r CheckStatusResult) string { return r.Job }},
-		{Header: "TARGET", Content: func(r CheckStatusResult) string { return r.Target }},
-		{Header: "TYPE", Visible: cmdio.WideOnly, Content: func(r CheckStatusResult) string { return r.Type }},
-		{Header: "SUCCESS", Content: func(r CheckStatusResult) string {
-			if r.Success == nil {
-				return "--"
-			}
-			return fmt.Sprintf("%.2f%%", *r.Success*100)
-		}},
-		{Header: "LATENCY", Content: func(r CheckStatusResult) string {
-			if r.LatencyMs == nil {
-				return "--"
-			}
-			return fmt.Sprintf("%.0fms", *r.LatencyMs)
-		}},
-		{Header: "PROBES_UP", Visible: cmdio.WideOnly, Content: func(r CheckStatusResult) string { return strconv.Itoa(r.ProbesUp) }},
-		{Header: "PROBES_TOTAL", Visible: cmdio.WideOnly, Content: func(r CheckStatusResult) string { return strconv.Itoa(r.ProbesTotal) }},
-		{Header: "PROBES", Visible: cmdio.WideOnly, Content: func(r CheckStatusResult) string { return strings.Join(r.ProbeNames, ", ") }},
-		{Header: "STATUS", Content: func(r CheckStatusResult) string { return r.Status }},
-	}}
+	return cmdio.Table[CheckStatusResult]{
+		Columns: []cmdio.Column[CheckStatusResult]{
+			{Header: "NAME", Content: statusDisplayName},
+			{Header: "JOB", Content: func(r CheckStatusResult) string { return r.Job }},
+			{Header: "TARGET", Content: func(r CheckStatusResult) string { return r.Target }},
+			{Header: "TYPE", Visible: cmdio.WideOnly, Content: func(r CheckStatusResult) string { return r.Type }},
+			{Header: "SUCCESS", Content: func(r CheckStatusResult) string {
+				if r.Success == nil {
+					return "--"
+				}
+				return fmt.Sprintf("%.2f%%", *r.Success*100)
+			}},
+			{Header: "LATENCY", Content: func(r CheckStatusResult) string {
+				if r.LatencyMs == nil {
+					return "--"
+				}
+				return fmt.Sprintf("%.0fms", *r.LatencyMs)
+			}},
+			{Header: "PROBES_UP", Visible: cmdio.WideOnly, Content: func(r CheckStatusResult) string { return strconv.Itoa(r.ProbesUp) }},
+			{Header: "PROBES_TOTAL", Visible: cmdio.WideOnly, Content: func(r CheckStatusResult) string { return strconv.Itoa(r.ProbesTotal) }},
+			{Header: "PROBES", Visible: cmdio.WideOnly, Content: func(r CheckStatusResult) string { return strings.Join(r.ProbeNames, ", ") }},
+			{Header: "STATUS", Content: func(r CheckStatusResult) string { return r.Status }},
+		},
+		// Keep prose in the table codec so JSON, YAML and agents still encode [].
+		Empty: func(w io.Writer) error {
+			cmdio.Info(w, "No checks found.")
+			return nil
+		},
+	}
 }
 
 // ---------------------------------------------------------------------------
