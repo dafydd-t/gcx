@@ -235,12 +235,7 @@ func ProjectTable() cmdio.Table[Project] {
 			}
 			return "-"
 		}},
-		{Header: "FOLDER UID", Visible: cmdio.WideOnly, Content: func(p Project) string {
-			if p.GrafanaFolderUID == "" {
-				return "-"
-			}
-			return p.GrafanaFolderUID
-		}},
+		{Header: "FOLDER UID", Visible: cmdio.WideOnly, Content: func(p Project) string { return cmdio.OrDash(p.GrafanaFolderUID) }},
 		{Header: "CREATED", Content: func(p Project) string { return tableTimestamp(p.Created) }},
 		{Header: "UPDATED", Visible: cmdio.WideOnly, Content: func(p Project) string { return tableTimestamp(p.Updated) }},
 	}}
@@ -953,10 +948,7 @@ func tableTimestamp(value string) string {
 	if len(value) > 16 {
 		return value[:16]
 	}
-	if value == "" {
-		return "-"
-	}
-	return value
+	return cmdio.OrDash(value)
 }
 
 func resultStatusString(status int) string {
@@ -1039,12 +1031,7 @@ func EnvVarTable() cmdio.Table[EnvVar] {
 			}
 			return e.Value
 		}},
-		{Header: "DESCRIPTION", Content: func(e EnvVar) string {
-			if e.Description == "" {
-				return "-"
-			}
-			return e.Description
-		}},
+		{Header: "DESCRIPTION", Content: func(e EnvVar) string { return cmdio.OrDash(e.Description) }},
 	}}
 }
 
@@ -1491,12 +1478,7 @@ func LoadZoneTable() cmdio.Table[LoadZone] {
 	return cmdio.Table[LoadZone]{Columns: []cmdio.Column[LoadZone]{
 		{Header: "ID", Content: func(z LoadZone) string { return strconv.Itoa(z.ID) }},
 		{Header: "NAME", Content: func(z LoadZone) string { return z.Name }},
-		{Header: "k6 LOAD ZONE ID", Content: func(z LoadZone) string {
-			if z.K6LoadZoneID == "" {
-				return "-"
-			}
-			return z.K6LoadZoneID
-		}},
+		{Header: "k6 LOAD ZONE ID", Content: func(z LoadZone) string { return cmdio.OrDash(z.K6LoadZoneID) }},
 	}}
 }
 
@@ -1650,12 +1632,7 @@ func newLoadZonesDeleteCommand(loader CloudConfigLoader) *cobra.Command {
 func AllowedProjectTable() cmdio.Table[AllowedProject] {
 	return cmdio.Table[AllowedProject]{Columns: []cmdio.Column[AllowedProject]{
 		{Header: "ID", Content: func(p AllowedProject) string { return strconv.Itoa(p.ID) }},
-		{Header: "NAME", Content: func(p AllowedProject) string {
-			if p.Name == "" {
-				return "-"
-			}
-			return p.Name
-		}},
+		{Header: "NAME", Content: func(p AllowedProject) string { return cmdio.OrDash(p.Name) }},
 	}}
 }
 
@@ -1770,12 +1747,7 @@ func newUpdateAllowedProjectsCommand(loader CloudConfigLoader) *cobra.Command { 
 func AllowedLoadZoneTable() cmdio.Table[AllowedLoadZone] {
 	return cmdio.Table[AllowedLoadZone]{Columns: []cmdio.Column[AllowedLoadZone]{
 		{Header: "ID", Content: func(z AllowedLoadZone) string { return strconv.Itoa(z.ID) }},
-		{Header: "NAME", Content: func(z AllowedLoadZone) string {
-			if z.Name == "" {
-				return "-"
-			}
-			return z.Name
-		}},
+		{Header: "NAME", Content: func(z AllowedLoadZone) string { return cmdio.OrDash(z.Name) }},
 	}}
 }
 

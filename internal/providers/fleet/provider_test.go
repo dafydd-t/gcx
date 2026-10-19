@@ -229,9 +229,9 @@ func TestPipelineTable_Encode(t *testing.T) {
 			wantValues: []string{"p-1", "alpha", "true", "p-2", "beta", "false"},
 		},
 		{
-			name:       "wide format adds MATCHERS",
+			name:       "wide format adds CONFIG TYPE and MATCHERS",
 			format:     "wide",
-			wantHeader: []string{"ID", "NAME", "ENABLED", "MATCHERS"},
+			wantHeader: []string{"ID", "NAME", "ENABLED", "CONFIG TYPE", "MATCHERS"},
 			wantValues: []string{"p-1", "alpha", "true", "env=prod", "p-2", "beta", "false"},
 		},
 	}

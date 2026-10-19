@@ -949,19 +949,8 @@ func PipelineTable() cmdio.Table[Pipeline] {
 			}
 			return strconv.FormatBool(*p.Enabled)
 		}},
-		{Header: "CONFIG TYPE", Visible: cmdio.WideOnly, Content: func(p Pipeline) string {
-			if p.ConfigType == "" {
-				return "-"
-			}
-			return p.ConfigType
-		}},
-		{Header: "MATCHERS", Visible: cmdio.WideOnly, Content: func(p Pipeline) string {
-			matchers := strings.Join(p.Matchers, ", ")
-			if matchers == "" {
-				return "-"
-			}
-			return matchers
-		}},
+		{Header: "CONFIG TYPE", Visible: cmdio.WideOnly, Content: func(p Pipeline) string { return cmdio.OrDash(p.ConfigType) }},
+		{Header: "MATCHERS", Visible: cmdio.WideOnly, Content: func(p Pipeline) string { return cmdio.OrDash(strings.Join(p.Matchers, ", ")) }},
 	}}
 }
 
